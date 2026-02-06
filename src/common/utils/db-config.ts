@@ -21,8 +21,8 @@ export interface DbEnvConfig {
 export function loadDbConfig(
   prefix: string,
   name: string,
+  migrationsPath: string,
   entitiesPath: string,
-  migrationsPath?: string,
 ): DbEnvConfig {
   return {
     name,
@@ -35,7 +35,7 @@ export function loadDbConfig(
     prefix: getEnv(`${prefix}PREFIX`, ''),
     logging: getEnv(`${prefix}LOGGING`, 'false') === 'true',
     synchronize: getEnv(`${prefix}SYNCHRONIZE`, 'false') === 'true',
-    migrations: migrationsPath ? [migrationsPath] : [],
+    migrations: [migrationsPath],
     entities: [entitiesPath],
   };
 }
@@ -63,7 +63,7 @@ export function createDataSourceOptions(
     entityPrefix: baseConfig.prefix,
     entities: baseConfig.entities,
     migrations: baseConfig.migrations,
-    migrationsRun: (baseConfig.migrations?.length ?? 0) > 0,
+    migrationsRun: true,
     // For Postgres, pass connection options to set the session timezone.
     // pg supports the `options` parameter, where we can set GUCs like timezone.
     extra: {

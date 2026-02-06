@@ -1,9 +1,9 @@
 import { ConsoleLogger, Injectable, OnModuleInit } from '@nestjs/common';
-import * as winston from 'winston';
-import * as path from 'path';
 import * as fs from 'fs';
-import { getEnv } from '../utils/env';
+import * as path from 'path';
+import * as winston from 'winston';
 import * as zlib from 'zlib';
+import { getEnv } from '../utils/env';
 
 @Injectable()
 export class Logger extends ConsoleLogger implements OnModuleInit {

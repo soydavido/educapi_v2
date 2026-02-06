@@ -14,10 +14,10 @@ const mainOptions = createDataSourceOptions(
   loadDbConfig(
     'DB_',
     getEnv('DB_NAME'),
+    // src/database/migrations/main/*.ts
+    join(__dirname, 'migrations', 'main', '*.ts'),
     // src/database/models/**/*.entity.ts
     join(__dirname, 'models', '**', '*.entity{.ts,.js}'),
-    // src/database/migrations/main/*.ts
-    undefined,
   ),
 );
 
