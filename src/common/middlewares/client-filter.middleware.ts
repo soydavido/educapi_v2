@@ -1,105 +1,61 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-//import { decode } from 'jsonwebtoken';
-//import { ACCESS_TOKEN_NAME } from 'src/auth/constants';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserEntity } from 'src/database/models/user.entity';
+import { getEnv } from 'src/common/utils/env';
 
 @Injectable()
 export class ClientFilterMiddleware implements NestMiddleware {
+  constructor(
+    @InjectRepository(UserEntity, getEnv('DB_NAME'))
+    private readonly userRepo: Repository<UserEntity>,
+  ) {}
+
   async use(req: Request, res: Response, next: NextFunction) {
-    console.log('ClientFilterMiddleware applied to:', req.path);
+    const sendResponse = (status: number, body: any) => {
+      // Express-like response
+      if (res && typeof (res as any).status === 'function') {
+        return (res as any).status(status).json(body);
+      }
+      // Fastify-like reply
+      if (res && typeof (res as any).code === 'function') {
+        return (res as any).code(status).send(body);
+      }
+      // Fallback: ensure Content-Type and send JSON
+      try {
+        if (res && typeof (res as any).setHeader === 'function') {
+          (res as any).setHeader('Content-Type', 'application/json');
+        } else if (res && typeof (res as any).set === 'function') {
+          (res as any).set('Content-Type', 'application/json');
+        }
+        (res as any).statusCode = status;
+        (res as any).end && (res as any).end(JSON.stringify(body));
+      } catch (_e) {
+        // ignore
+      }
+    };
+
     try {
-      const auth = req.headers['authorization'];
-      let token: string | undefined =
-        auth && auth.startsWith('Bearer ')
-          ? auth.substring('Bearer '.length)
-          : undefined;
-
-      if (!token) {
-        const cookiesObj = (req as any)?.cookies as
-          | Record<string, string>
-          | undefined;
-        const cookieHeader = req.headers?.cookie ?? '';
-        let cookieToken: string | undefined = cookiesObj?.accessToken;
-        if (!cookieToken && cookieHeader) {
-          // lightweight parse for accessToken=...
-          const parts = cookieHeader.split(';');
-          for (const p of parts) {
-            const [k, v] = p.split('=');
-            //if (k && k.trim() === ACCESS_TOKEN_NAME) {
-            //  cookieToken = decodeURIComponent((v ?? '').trim());
-            //  break;
-            //}
-          }
-        }
-        token = cookieToken;
+      
+      const raw = (req.headers['usersecretpasskey'] || req.headers['UserSecretPasskey']) as
+        | string
+        | undefined;
+      const header = Array.isArray(raw) ? raw[0] : raw;
+      if (!header) {
+        return sendResponse(401, { message: 'Missing UserSecretPasskey header' });
       }
 
-      if (!token) return next();
-
-      // Decode (no verification here; AuthGuard handles verification)
-      const payload: any = null; //decode(token);
-      if (!payload || typeof payload !== 'object') return next();
-
-      const clientId = payload?.aud ?? payload?.clientId;
-      const userId = payload?.sub;
-
-      if (!clientId) return next();
-
-      // Attach to request for downstream usage (guards/controllers)
-      (req as any).user = { ...(req as any).user, ...payload, aud: clientId };
-      (req as any).clientId = clientId;
-      if (userId != null) {
-        (req as any).createdByUserId = Number(userId);
-        (req as any).updatedByUserId = Number(userId);
+      const user = await this.userRepo.findOne({ where: { secret: header } as any });
+      if (!user) {
+        return sendResponse(401, { message: 'Invalid UserSecretPasskey' });
       }
 
-      // Auto-filter: inject clienteId into query for GET list endpoints
-      if (req.method === 'GET') {
-        // Only set if not explicitly provided by the client
-        if (!req.query || typeof req.query !== 'object') {
-          (req as any).query = {};
-        }
-        if (!('clientId' in req.query)) {
-          req.query.clientId = clientId;
-        }
-
-        // Default createdByUserId filter so BaseService.find lo procese si existe la columna
-        if (userId != null && !('createdByUserId' in req.query)) {
-          req.query.createdByUserId = userId;
-        }
-      }
-
-      // For write operations, default clienteId and audit user on body if it's a plain object
-      if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-        if (
-          req.body &&
-          typeof req.body === 'object' &&
-          !Array.isArray(req.body)
-        ) {
-          if (!('clientId' in req.body)) {
-            req.body.clientId = clientId;
-          }
-
-          // Audit user: createdByUserId on POST, updatedByUserId on POST/PUT/PATCH
-          if (userId != null) {
-            if (req.method === 'POST') {
-              if (!('createdByUserId' in req.body)) {
-                req.body.createdByUserId = Number(userId);
-              }
-              if (!('updatedByUserId' in req.body)) {
-                req.body.updatedByUserId = Number(userId);
-              }
-            }
-            if (!('updatedByUserId' in req.body)) {
-              req.body.updatedByUserId = Number(userId);
-            }
-          }
-        }
-      }
-
+      // attach minimal user info for downstream handlers
+      (req as any).user = { ...(req as any).user, idUser: user.idUser };
       return next();
-    } catch (_e) {
-      return next();
+    } catch (err) {
+      return sendResponse(500, { message: 'Error validating UserSecretPasskey' });
     }
   }
 }
