@@ -4,6 +4,12 @@ Esta API te permitira crear, consultar, modificar y eliminar las cartas que teng
 
 ## 🚀 Documentación de la API - ¡Descubre el Poder de las Cartas!
 
+Direccion de la API
+
+```
+https://educapi-v2.onrender.com
+```
+
 ### 🎴 GET /card - ¡Colecciona tus Cartas!
 Obtén una lista paginada de cartas con filtros opcionales. ¡Como si estuvieras navegando por tu colección infinita! 📚
 
@@ -13,6 +19,9 @@ Para todos los request, debes tener un encabezado (header) de la peticion el cua
 
 **Headers:**
 - `usersecretpasskey`: Como parte del primer ejemplo, puedes usar el **UserSecretPasskey** de prueba y su valor es "USR-SECRET-99"
+
+Ejemplo:
+Tipo de peticion - GET
 ```
 https://educapi-v2.onrender.com/card
 ```
@@ -47,6 +56,12 @@ Crea una nueva carta. ¡Sé el creador de leyendas! ⚡
 
 **Headers:**
 - `usersecretpasskey` (string, opcional): Si pones `'USR-SECRET-99'`, ¡boom! Error 403 Forbidden. 😱 
+
+Ejemplo:
+Tipo de peticion - POST
+```
+https://educapi-v2.onrender.com/card
+```
 
 **Cuerpo de la Petición (Request Body):**
 ```json

@@ -18,7 +18,6 @@ export class CardController {
   async create(@Body() createCardDto: CreateCardDto, @Headers() headers: any) {
     this.logger.log('Headers:', headers);
     if(headers.usersecretpasskey == 'USR-SECRET-99'){
-      this.logger.log('No es posible crear cartas con el userSecretPassKey proporcionado');
       throw new ForbiddenException('No es posible crear cartas con el userSecretPassKey proporcionado');
     }
     const cardData = { ...createCardDto, userSecret: headers['usersecretpasskey'] };
