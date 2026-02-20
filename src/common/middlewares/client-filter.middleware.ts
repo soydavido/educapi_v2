@@ -43,19 +43,19 @@ export class ClientFilterMiddleware implements NestMiddleware {
         | undefined;
       const header = Array.isArray(raw) ? raw[0] : raw;
       if (!header) {
-        return sendResponse(401, { message: 'Missing UserSecretPasskey header' });
+        return sendResponse(401, { message: 'No se esta recibiendo el encabezado de autorizacion.' });
       }
 
       const user = await this.userRepo.findOne({ where: { secret: header } as any });
       if (!user) {
-        return sendResponse(401, { message: 'Invalid UserSecretPasskey' });
+        return sendResponse(401, { message: 'No existe el usuario con el secreto proporcionado.' });
       }
 
       // attach minimal user info for downstream handlers
       (req as any).user = { ...(req as any).user, idUser: user.idUser };
       return next();
     } catch (err) {
-      return sendResponse(500, { message: 'Error validating UserSecretPasskey' });
+      return sendResponse(500, { message: 'Error al validar el secreto del usuario.' });
     }
   }
 }
