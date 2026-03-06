@@ -72,8 +72,7 @@ https://educapi-v2.onrender.com/card
   "defense": 1500,
   "lifePoints": 2500,
   "pictureUrl": "https://example.com/image.jpg",
-  "attributes": {"tipo": "Mago"},
-  "userSecret": "secreto"
+  "attributes": {"tipo": "Mago"}
 }
 ```
 
