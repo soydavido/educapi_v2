@@ -8,6 +8,7 @@ import { CardModule } from './api/card/card.module';
 import { ClientFilterMiddleware } from './common/middlewares/client-filter.middleware';
 import { getEnv } from './common/utils/env';
 import { UserEntity } from './database/models/user.entity';
+import { GlobalExceptionFilter } from './common/errors/global-exception.filter';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { UserEntity } from './database/models/user.entity';
     CardModule,
   ],
   controllers: [],
-  providers: [ClientFilterMiddleware],
+  providers: [ClientFilterMiddleware, GlobalExceptionFilter],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

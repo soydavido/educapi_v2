@@ -7,7 +7,7 @@ import { getEnv } from '../utils/env';
 
 @Injectable()
 export class Logger extends ConsoleLogger implements OnModuleInit {
-  private readonly logger: winston.Logger;
+  public readonly logger: winston.Logger;
 
   constructor() {
     super();
