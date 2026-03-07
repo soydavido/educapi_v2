@@ -23,11 +23,15 @@ async function bootstrap() {
 
   // 1. Usar el método nativo de NestJS para CORS
   app.enableCors({
-    origin: '*', // Permite absolutamente todo (quitar 'credentials: true' si usas '*')
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-    allowedHeaders: 'Content-Type, Accept, Authorization, usersecretpasskey',
+    origin: true, // Cambiado de '*' a 'true' para que refleje el origen dinámicamente
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: [
+      'Content-Type', 
+      'Authorization', 
+      'Accept', 
+      'usersecretpasskey' // <--- Crucial que esté aquí
+    ],
+    credentials: true,
   });
 
   // Register global exception filter

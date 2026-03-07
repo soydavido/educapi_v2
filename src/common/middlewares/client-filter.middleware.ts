@@ -37,7 +37,11 @@ export class ClientFilterMiddleware implements NestMiddleware {
     };
 
     try {
-      
+      // allow preflight without auth header
+      if (req.method === 'OPTIONS') {
+        return next();
+      }
+
       const raw = (req.headers['usersecretpasskey'] || req.headers['UserSecretPasskey']) as
         | string
         | undefined;
