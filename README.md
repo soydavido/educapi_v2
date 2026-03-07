@@ -101,3 +101,66 @@ https://educapi-v2.onrender.com/card
 }
 ```
 
+### 🔍 GET /card/:id - ¡Una Carta en Específico!
+Recupera una sola carta usando su `idCard`. Devuelve el mismo formato paginado que el listado general, con `data` conteniendo un único elemento.
+
+**Headers:**
+- `usersecretpasskey`: requerido para filtrar tu colección.
+
+Ejemplo:
+Tipo de peticion - GET
+```
+https://educapi-v2.onrender.com/card/123
+```
+
+**Respuesta:**
+```json
+{
+  "data": [
+    {
+      "idCard": 123,
+      "name": "Dragón de Obsidiana",
+      "description": "...",
+      "attack": 85,
+      "defense": 60,
+      "lifePoints": 120,
+      "pictureUrl": "https://...",
+      "attributes": {"elemento": "Fuego"},
+      "userSecret": "USR-SECRET-99",
+      "createdAt": "2026-02-07T03:48:10.874Z",
+      "updatedAt": null
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 1
+}
+```
+
+### 🗑️ DELETE /card/:id - ¡Elimina una Carta! 💥
+Borra la carta identificada por `idCard`. Se requiere el header secreto para validar que tienes permiso.
+
+**Headers:**
+- `usersecretpasskey`: obligatorio.
+
+Ejemplo:
+Tipo de peticion - DELETE
+```
+https://educapi-v2.onrender.com/card/123
+```
+
+**Respuesta (éxito):**
+```json
+{
+  "message": "Carta eliminada satisfactoriamente"
+}
+```
+
+**Respuesta (404 - No encontrada):**
+```json
+{
+  "statusCode": 404,
+  "message": "Carta no encontrada"
+}
+```
+
