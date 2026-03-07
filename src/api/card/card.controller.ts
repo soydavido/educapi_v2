@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, Headers, Logger, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Headers, Logger, NotFoundException, Param, Post, Query } from '@nestjs/common';
 import { CreateCardDto } from './dto/card.dto';
 import { CardService } from './card.service';
 
@@ -27,5 +27,15 @@ export class CardController {
     }
     const cardData = { ...createCardDto, userSecret: headers['usersecretpasskey'] };
     return this.cardService.create(cardData);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string, @Headers() headers: any) {
+    const result = await this.cardService.delete(id, headers['usersecretpasskey']);
+    if (result.affected && result.affected > 0) {
+      return { message: "Carta eliminada satisfactoriamente" };
+    } else {
+      throw new NotFoundException("Carta no encontrada");
+    }
   }
 }

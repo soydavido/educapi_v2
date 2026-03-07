@@ -10,4 +10,8 @@ export class CardService extends BaseService<CardEntity> {
   constructor(@InjectDataSource(getEnv('DB_NAME')) private readonly ds: DataSource) {
     super(ds.getRepository(CardEntity));
   }
+
+  async delete(id: string, userSecret: string) {
+    return this.repository.delete({ idCard: Number(id), userSecret });
+  }
 }

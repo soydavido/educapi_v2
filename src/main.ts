@@ -20,7 +20,10 @@ async function bootstrap() {
   // Enable CORS
   const fastifyInstance = app.getHttpAdapter().getInstance();
   await fastifyInstance.register(cors, {
-    origin: true, // Allow all origins, or specify your React app URL
+    origin: true, // Allow all origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'usersecretpasskey'],
+    credentials: true,
   });
 
   // Register global exception filter
