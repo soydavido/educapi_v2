@@ -14,6 +14,21 @@ export class ClientFilterMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: NextFunction) {
     const sendResponse = (status: number, body: any) => {
+      // add CORS headers to every manual response so browsers aren't blocked
+      try {
+        if (res && typeof (res as any).setHeader === 'function') {
+          (res as any).setHeader('Access-Control-Allow-Origin', '*');
+          (res as any).setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, usersecretpasskey');
+          (res as any).setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
+        } else if (res && typeof (res as any).set === 'function') {
+          (res as any).set('Access-Control-Allow-Origin', '*');
+          (res as any).set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, usersecretpasskey');
+          (res as any).set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
+        }
+      } catch (_e) {
+        // ignore header errors
+      }
+
       // Express-like response
       if (res && typeof (res as any).status === 'function') {
         return (res as any).status(status).json(body);
