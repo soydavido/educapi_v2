@@ -14,19 +14,20 @@ async function bootstrap() {
     new FastifyAdapter()
   );
   const port = Number(getEnv('APP_PORT', process.env.PORT ?? '3000'));
-  
+
   // Extraer las variables de entorno para los orígenes permitidos
   // Si no existe, usamos un fallback seguro o permitimos todo solo en desarrollo
-  const allowedOrigins = process.env.CORS_ORIGINS 
-    ? process.env.CORS_ORIGINS.split(',') 
+  const allowedOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',')
     : true; // Cambia a 'true' solo si estás en un entorno local de desarrollo
 
   // 1. Usar el método nativo de NestJS para CORS
   app.enableCors({
-    origin: allowedOrigins, 
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'usersecretpasskey'],
-    credentials: true,
+    origin: '*', // Permite absolutamente todo (quitar 'credentials: true' si usas '*')
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    allowedHeaders: 'Content-Type, Accept, Authorization, usersecretpasskey',
   });
 
   // Register global exception filter
