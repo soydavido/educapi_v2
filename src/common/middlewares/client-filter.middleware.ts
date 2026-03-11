@@ -4,15 +4,29 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from 'src/database/models/user.entity';
 import { getEnv } from 'src/common/utils/env';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class ClientFilterMiddleware implements NestMiddleware {
+  protected readonly logger = new Logger(ClientFilterMiddleware.name);
+
   constructor(
     @InjectRepository(UserEntity, getEnv('DB_NAME'))
     private readonly userRepo: Repository<UserEntity>,
   ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
+    // Log request information (first thing)
+    const ip = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const body = req.body;
+    const method = req.method;
+    const url = req.originalUrl;
+    const endpoint = url;
+    const hostname = req.hostname;
+    const userSecretPasskey = req.headers['usersecretpasskey'] || req.headers['UserSecretPasskey'];
+    console.log(req);
+    this.logger.log(`Consulta info: { endpoint: '${endpoint}', url: '${url}', ip: '${ip}', body: ${body ? JSON.stringify(body) : 'undefined'}, UserSecretPasskey: '${userSecretPasskey}', hostname: '${hostname}' }`);
+
     const sendResponse = (status: number, body: any) => {
       // add CORS headers to every manual response so browsers aren't blocked
       try {
