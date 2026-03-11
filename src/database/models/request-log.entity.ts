@@ -8,14 +8,14 @@ export class RequestLogEntity {
   @Column({ length: 255 })
   endpoint: string;
 
-  @Column({ length: 255 })
-  url: string;
-
   @Column({ length: 100 })
   ip: string;
 
   @Column({ type: 'text', nullable: true })
   body: string;
+
+  @Column({ type: 'text', nullable: true })
+  method: string;
 
   @Column({ name: 'usersecretpasskey', length: 255, nullable: true })
   userSecretPasskey: string;
