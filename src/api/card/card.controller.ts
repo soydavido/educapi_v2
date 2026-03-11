@@ -11,6 +11,7 @@ export class CardController {
   @Get()
   async find(@Query() query: any) {
     const { page = 1, limit = 20, ...filters } = query;
+    filters.userSecret = headers['usersecretpasskey'];
     return this.cardService.find(Number(page), Number(limit), filters);
   }
 
