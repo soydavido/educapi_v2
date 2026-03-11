@@ -7,6 +7,8 @@ import { AppModule } from './app.module';
 import { getEnv } from './common/utils/env';
 import { GlobalExceptionFilter } from './common/errors/global-exception.filter';
 import { Logger } from './common/services/logger.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { RequestLogEntity } from './database/models/request-log.entity';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -39,6 +41,32 @@ async function bootstrap() {
 
   const fastifyInstance = app.getHttpAdapter().getInstance();
   const logger = app.get(Logger);
+  const requestLogRepo = app.get(getRepositoryToken(RequestLogEntity, getEnv('DB_NAME')));
+
+  // Hook para guardar logs INCOMING después de que el body sea parseado
+  fastifyInstance.addHook('preHandler', async (request, reply) => {
+    const rawPasskey = request.headers['usersecretpasskey'] || request.headers['UserSecretPasskey'];
+    const userSecretPasskey = Array.isArray(rawPasskey) ? rawPasskey[0] : rawPasskey;
+    const ip = request.ip;
+    const body = request.body;
+    const endpoint = request.url;
+    const hostname = request.hostname;
+
+    // Guardar log INCOMING
+    try {
+      await requestLogRepo.save({
+        endpoint,
+        ip: typeof ip === 'string' ? ip : JSON.stringify(ip),
+        body: body ? JSON.stringify(body) : undefined,
+        method: request.method,
+        userSecretPasskey: userSecretPasskey,
+        hostname,
+        direction: 'INCOMING',
+      });
+    } catch (e) {
+      logger.error('Error guardando log de request en hook', e);
+    }
+  });
 
   // Add hook to log 404 responses
   fastifyInstance.addHook('onSend', (request, reply, payload, done) => {
