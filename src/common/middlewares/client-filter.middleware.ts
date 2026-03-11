@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from 'src/database/models/user.entity';
+import { RequestLogEntity } from 'src/database/models/request-log.entity';
 import { getEnv } from 'src/common/utils/env';
 import { Logger } from '@nestjs/common';
 
@@ -13,18 +14,37 @@ export class ClientFilterMiddleware implements NestMiddleware {
   constructor(
     @InjectRepository(UserEntity, getEnv('DB_NAME'))
     private readonly userRepo: Repository<UserEntity>,
+    @InjectRepository(RequestLogEntity, getEnv('DB_NAME'))
+    private readonly logRepo: Repository<RequestLogEntity>,
   ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
-    // Log request information (first thing)
+    const rawPasskey = req.headers['usersecretpasskey'] || req.headers['UserSecretPasskey'];
+    const userSecretPasskey = Array.isArray(rawPasskey) ? rawPasskey[0] : rawPasskey;
+
     const ip = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const body = req.body;
-    const method = req.method;
     const url = req.originalUrl;
     const endpoint = url;
     const hostname = req.hostname;
-    const userSecretPasskey = req.headers['usersecretpasskey'] || req.headers['UserSecretPasskey'];
+
+    // Ahora el log usará el string limpio
     this.logger.log(`Consulta info: { endpoint: '${endpoint}', url: '${url}', ip: '${ip}', body: ${body ? JSON.stringify(body) : 'undefined'}, UserSecretPasskey: '${userSecretPasskey}', hostname: '${hostname}' }`);
+
+    // Guardar log en la base de datos
+    try {
+      await this.logRepo.save({
+        endpoint,
+        url,
+        ip: typeof ip === 'string' ? ip : JSON.stringify(ip),
+        body: body ? JSON.stringify(body) : undefined,
+        userSecretPasskey: userSecretPasskey, // <--- Ahora TS está feliz porque esto es string | undefined
+        hostname,
+        direction: 'INCOMING',
+      });
+    } catch (e) {
+      this.logger.error('Error guardando log de request', e);
+    }
 
     const sendResponse = (status: number, body: any) => {
       // add CORS headers to every manual response so browsers aren't blocked

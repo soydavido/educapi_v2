@@ -8,6 +8,7 @@ import { CardModule } from './api/card/card.module';
 import { ClientFilterMiddleware } from './common/middlewares/client-filter.middleware';
 import { getEnv } from './common/utils/env';
 import { UserEntity } from './database/models/user.entity';
+import { RequestLogEntity } from './database/models/request-log.entity';
 import { GlobalExceptionFilter } from './common/errors/global-exception.filter';
 
 @Module({
@@ -16,7 +17,7 @@ import { GlobalExceptionFilter } from './common/errors/global-exception.filter';
     ScheduleModule.forRoot(),
     DatabaseModule.forConnections(appDataSourceOptions),
     // Make the UserEntity repository available for the middleware
-    DatabaseModule.forEntities(getEnv('DB_NAME'), [UserEntity]),
+    DatabaseModule.forEntities(getEnv('DB_NAME'), [UserEntity, RequestLogEntity]),
     BaseHttpModule,
     CardModule,
   ],
