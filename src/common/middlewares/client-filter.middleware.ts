@@ -24,7 +24,6 @@ export class ClientFilterMiddleware implements NestMiddleware {
     const endpoint = url;
     const hostname = req.hostname;
     const userSecretPasskey = req.headers['usersecretpasskey'] || req.headers['UserSecretPasskey'];
-    console.log(req);
     this.logger.log(`Consulta info: { endpoint: '${endpoint}', url: '${url}', ip: '${ip}', body: ${body ? JSON.stringify(body) : 'undefined'}, UserSecretPasskey: '${userSecretPasskey}', hostname: '${hostname}' }`);
 
     const sendResponse = (status: number, body: any) => {
