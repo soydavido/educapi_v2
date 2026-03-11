@@ -14,7 +14,7 @@ export class RequestLogEntity {
   @Column({ type: 'text', nullable: true })
   body: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'method_requested', type: 'text', nullable: true })
   method: string;
 
   @Column({ name: 'usersecretpasskey', length: 255, nullable: true })

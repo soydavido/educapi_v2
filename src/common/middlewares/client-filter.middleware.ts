@@ -27,18 +27,15 @@ export class ClientFilterMiddleware implements NestMiddleware {
     const url = req.originalUrl;
     const endpoint = url;
     const hostname = req.hostname;
-    console.log(req)
-    // Ahora el log usará el string limpio
-    this.logger.log(`Consulta info: { endpoint: '${endpoint}', url: '${url}', ip: '${ip}', body: ${body ? JSON.stringify(body) : 'undefined'}, UserSecretPasskey: '${userSecretPasskey}', hostname: '${hostname}' }`);
 
-    // Guardar log en la base de datos
+    // Guardar log de REQUEST INCOMING
     try {
       await this.logRepo.save({
         endpoint,
         ip: typeof ip === 'string' ? ip : JSON.stringify(ip),
         body: body ? JSON.stringify(body) : undefined,
         method: req.method,
-        userSecretPasskey: userSecretPasskey, // <--- Ahora TS está feliz porque esto es string | undefined
+        userSecretPasskey: userSecretPasskey,
         hostname,
         direction: 'INCOMING',
       });
