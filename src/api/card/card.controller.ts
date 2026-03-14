@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Headers, Logger, NotFoundException, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Headers, Logger, NotFoundException, Param, Post, Patch, Query } from '@nestjs/common';
 import { CreateCardDto } from './dto/card.dto';
 import { CardService } from './card.service';
+import { UpdateCardDto } from './dto/update-card.dto';
 
 @Controller('card')
 export class CardController {
@@ -18,6 +19,28 @@ export class CardController {
   @Get(':id')
   async findOne(@Param('id') id: string, @Headers() headers: any) {
     return this.cardService.find(1, 1, { idCard: id, userSecret: headers['usersecretpasskey'] });
+  }
+
+  @Patch(':id')
+  async update(
+    @Param('id') id: string, 
+    @Body() updateCardDto: UpdateCardDto, 
+    @Headers() headers: any
+  ) {
+    const userSecret = headers['usersecretpasskey'];
+    
+    // Validamos la restricción que pusiste en el create (si aplica)
+    if(userSecret === 'USR-SECRET-99'){
+      throw new ForbiddenException('No es posible modificar cartas con este userSecretPassKey');
+    }
+
+    const result = await this.cardService.updateCard(id, userSecret, updateCardDto);
+
+    if (result.affected && result.affected > 0) {
+      return { message: "Carta actualizada satisfactoriamente" };
+    } else {
+      throw new NotFoundException("Carta no encontrada o no tienes permisos");
+    }
   }
 
   @Post()
