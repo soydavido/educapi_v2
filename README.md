@@ -137,6 +137,29 @@ https://educapi-v2.onrender.com/card/123
 }
 ```
 
+### 🛠️ PATCH /card/:id - ¡Evoluciona tu Carta!
+
+¿Tu carta necesita más poder o una mejor descripción? ¡Actualiza sus estadísticas! Puedes enviar solo los campos que desees modificar. 📈
+
+Headers:
+
+usersecretpasskey: Obligatorio. Debe coincidir con el creador original de la carta.
+
+Ejemplo:
+Tipo de petición - PATCH
+```
+https://educapi-v2.onrender.com/card/123
+```
+
+**Cuerpo de la peticion (Request Body)**
+
+```json
+{
+  "attack": 3500,
+  "description": "Una versión mejorada de la carta original."
+}
+```
+
 ### 🗑️ DELETE /card/:id - ¡Elimina una Carta! 💥
 Borra la carta identificada por `idCard`. Se requiere el header secreto para validar que tienes permiso.
 
