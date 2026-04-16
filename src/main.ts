@@ -56,15 +56,18 @@ async function bootstrap() {
     try {
       await requestLogRepo.save({
         endpoint,
-        ip: typeof ip === 'string' ? ip : JSON.stringify(ip),
+        ip: typeof ip === "string" ? ip : JSON.stringify(ip),
         body: body ? JSON.stringify(body) : undefined,
         method: request.method,
         userSecretPasskey: userSecretPasskey,
         hostname,
-        direction: 'INCOMING',
+        direction: "INCOMING",
       });
     } catch (e) {
-      logger.error('Error guardando log de request en hook', e);
+      logger.error(
+        // Manejo seguro del tipo 'unknown' en el catch para extraer el mensaje de error (lo puse pa que no marque rojo)
+        "Error guardando log de request en hook", e instanceof Error ? e.message : String(e),
+      );
     }
   });
 
