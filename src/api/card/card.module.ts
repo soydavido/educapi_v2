@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { getEnv } from 'src/common/utils/env';
-import { DatabaseModule } from 'src/modules/database.module';
+import { getEnv } from '../../common/utils/env';
+import { DatabaseModule } from '../../modules/database.module';
 import { CardController } from './card.controller';
 import { CardService } from './card.service';
-import { CardEntity } from 'src/database/models/card.entity';
+import { CardEntity } from '../../database/models/card.entity';
 
 @Module({
   imports: [

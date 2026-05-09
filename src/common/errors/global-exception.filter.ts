@@ -2,8 +2,8 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Injec
 import { Logger } from '../services/logger.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RequestLogEntity } from 'src/database/models/request-log.entity';
-import { getEnv } from 'src/common/utils/env';
+import { RequestLogEntity } from '../../database/models/request-log.entity';
+import { getEnv } from '../utils/env';
 
 @Injectable()
 @Catch()

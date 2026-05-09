@@ -2,9 +2,9 @@ import { Injectable, NestMiddleware, UnauthorizedException, HttpException } from
 import { Request, Response, NextFunction } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from 'src/database/models/user.entity';
-import { RequestLogEntity } from 'src/database/models/request-log.entity';
-import { getEnv } from 'src/common/utils/env';
+import { UserEntity } from '../../database/models/user.entity';
+import { RequestLogEntity } from '../../database/models/request-log.entity';
+import { getEnv } from '../utils/env';
 import { Logger } from '@nestjs/common';
 
 @Injectable()
