@@ -72,7 +72,7 @@ Responde ÚNICAMENTE con un objeto JSON válido con exactamente estos campos:
   "defense": número entero respetando los rangos del contexto,
   "lifePoints": número entero respetando los rangos del contexto,
   "attributes": { "element": "elemento asignado según el contexto" },
-  "imagePrompt": "descripción visual detallada en inglés para generar la imagen, incluye colores principales, estilo artístico y elementos visuales del concepto"
+  "imagePrompt": "descripción visual detallada en inglés en una sola cadena de texto, incluye colores principales, estilo artístico y elementos visuales del concepto"
 }`;
   }
 
@@ -113,14 +113,23 @@ Responde ÚNICAMENTE con un objeto JSON válido con exactamente estos campos:
       for (const field of required) {
         if (data[field] === undefined) throw new Error(`Missing field: ${field}`);
       }
+      // Normalize imagePrompt to string in case the AI wraps it in an object
+      if (typeof data.imagePrompt !== 'string') {
+        data.imagePrompt = typeof data.imagePrompt === 'object'
+          ? Object.values(data.imagePrompt).join(', ')
+          : String(data.imagePrompt);
+      }
       return data as AiCardResponse;
     } catch {
       throw new BadRequestException('La IA devolvió una respuesta inválida');
     }
   }
 
-  private buildPollinationsUrl(imagePrompt: string): string {
-    const encoded = encodeURIComponent(imagePrompt);
+  private buildPollinationsUrl(imagePrompt: any): string {
+    const prompt = typeof imagePrompt === 'string'
+      ? imagePrompt
+      : JSON.stringify(imagePrompt);
+    const encoded = encodeURIComponent(prompt);
     return `https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true`;
   }
 }
