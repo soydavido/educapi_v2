@@ -1,3 +1,8 @@
 [2026-03-14T13:17:48.816Z] INFO: [App] Server listening on port 4000
 [2026-03-14T13:19:24.822Z] INFO: [App] Server listening on port 4000
 [2026-03-14T13:22:38.367Z] INFO: [App] Server listening on port 4000
+[2026-05-14T22:52:43.864Z] INFO: [App] Server listening on port 4000
+[2026-05-14T22:53:23.833Z] WARN: [App] 404 Not Found: GET /ai/generate-card
+[2026-05-14T22:53:23.833Z] WARN: [App] 404 Not Found: GET /ai/generate-card
+[2026-05-14T22:53:39.277Z] INFO: [App] Server listening on port 4000
+[2026-05-14T22:57:03.558Z] INFO: [App] Server listening on port 4000

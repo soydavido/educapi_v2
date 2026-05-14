@@ -160,6 +160,58 @@ https://educapi-v2.onrender.com/card/123
 }
 ```
 
+### 🤖 POST /ai/generate-card - ¡Genera una Carta con IA!
+Genera automáticamente una carta usando Inteligencia Artificial. La IA crea el nombre, descripción, estadísticas e imagen basándose en tu prompt. La carta se guarda directamente en tu colección. ✨
+
+**Headers:**
+- `usersecretpasskey`: obligatorio. La carta quedará asociada a tu secreto.
+
+Ejemplo:
+Tipo de peticion - POST
+```
+https://educapi-v2.onrender.com/ai/generate-card
+```
+
+**Cuerpo de la Petición (Request Body):**
+```json
+{
+  "globalContext": "Temática Pokémon, ataque entre 0 y 100, defensa entre 0 y 50, vida entre 100 y 200. Debe tener un elemento de los siguientes: Agua, Fuego o Tierra.",
+  "cardPrompt": "La carta debe representar la fotosíntesis y su color principal debe ser verde."
+}
+```
+
+| Campo | Descripción |
+|---|---|
+| `globalContext` | Contexto global del proyecto: temática, rangos de stats, reglas generales. Se define una vez para todo el proyecto. |
+| `cardPrompt` | Descripción específica de la carta que se quiere generar. |
+
+**Respuesta (¡Carta generada! 🎉):**
+```json
+{
+  "idCard": 42,
+  "name": "Cloroplasto Maestro",
+  "description": "Organelo vegetal que transforma la luz solar en energía química. Domina el arte de convertir CO₂ y agua en glucosa y oxígeno.",
+  "attack": 45,
+  "defense": 30,
+  "lifePoints": 150,
+  "pictureUrl": "https://image.pollinations.ai/prompt/green+pokemon+card+chloroplast+photosynthesis+sunlight+nature+vibrant?width=512&height=512&nologo=true",
+  "attributes": { "element": "Tierra" },
+  "userSecret": "TU-SECRET",
+  "createdAt": "2026-05-14T20:00:00.000Z",
+  "updatedAt": null
+}
+```
+
+**Respuesta (503 - IA no disponible):**
+```json
+{
+  "statusCode": 503,
+  "message": "No se pudo generar la carta. Intenta nuevamente."
+}
+```
+
+---
+
 ### 🗑️ DELETE /card/:id - ¡Elimina una Carta! 💥
 Borra la carta identificada por `idCard`. Se requiere el header secreto para validar que tienes permiso.
 

@@ -6,6 +6,7 @@ import { DatabaseModule } from './common/modules/database.module';
 import { appDataSourceOptions } from './database/data-source';
 import { BaseHttpModule } from './modules/base-http.module';
 import { CardModule } from './api/card/card.module';
+import { AiModule } from './api/ai/ai.module';
 import { ClientFilterMiddleware } from './common/middlewares/client-filter.middleware';
 import { ResponseLoggingInterceptor } from './common/interceptors/response-logging.interceptor';
 import { getEnv } from './common/utils/env';
@@ -22,6 +23,7 @@ import { GlobalExceptionFilter } from './common/errors/global-exception.filter';
     DatabaseModule.forEntities(getEnv('DB_NAME'), [UserEntity, RequestLogEntity]),
     BaseHttpModule,
     CardModule,
+    AiModule,
   ],
   controllers: [],
   providers: [
