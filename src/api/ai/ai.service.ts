@@ -1,6 +1,5 @@
 import { Injectable, Logger, BadRequestException, ServiceUnavailableException } from '@nestjs/common';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import Groq from 'groq-sdk';
 import { CardService } from '../card/card.service';
 import { GenerateCardDto } from './dto/generate-card.dto';
 import { getEnv } from '../../common/utils/env';
@@ -27,16 +26,16 @@ export class AiService {
     let cardData: AiCardResponse;
 
     try {
-      cardData = await this.callGemini(prompt);
-      this.logger.log('Card generated via Gemini');
-    } catch (geminiError) {
-      this.logger.warn(`Gemini failed, trying Groq: ${this.describeError(geminiError)}`);
+      cardData = await this.callOpenRouter(prompt);
+      this.logger.log('Card generated via OpenRouter');
+    } catch (openRouterError) {
+      this.logger.warn(`OpenRouter failed, trying Gemini: ${this.describeError(openRouterError)}`);
       try {
-        cardData = await this.callGroq(prompt);
-        this.logger.log('Card generated via Groq (fallback)');
-      } catch (groqError) {
+        cardData = await this.callGemini(prompt);
+        this.logger.log('Card generated via Gemini (fallback)');
+      } catch (geminiError) {
         this.logger.error(
-          `Both AI providers failed. Gemini: ${this.describeError(geminiError)} | Groq: ${this.describeError(groqError)}`,
+          `Both AI providers failed. OpenRouter: ${this.describeError(openRouterError)} | Gemini: ${this.describeError(geminiError)}`,
         );
         throw new ServiceUnavailableException('No se pudo generar la carta. Intenta nuevamente.');
       }
@@ -99,24 +98,39 @@ Responde ÚNICAMENTE con un objeto JSON válido con exactamente estos campos:
     return this.parseJson(text);
   }
 
-  private async callGroq(prompt: string): Promise<AiCardResponse> {
-    const apiKey = getEnv('GROQ_API_KEY');
-    if (!apiKey) throw new Error('GROQ_API_KEY not configured');
+  private async callOpenRouter(prompt: string): Promise<AiCardResponse> {
+    const apiKey = getEnv('OPENROUTER_API_KEY');
+    if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured');
 
-    const modelName = getEnv('GROQ_MODEL', 'llama-3.1-8b-instant');
+    const modelName = getEnv('OPENROUTER_MODEL', 'nvidia/nemotron-3-super-120b-a12b:free');
 
-    const groq = new Groq({ apiKey });
-    const completion = await this.withRetry(
-      () =>
-        groq.chat.completions.create({
-          messages: [{ role: 'user', content: prompt }],
+    const completion = await this.withRetry(async () => {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           model: modelName,
+          messages: [{ role: 'user', content: prompt }],
           response_format: { type: 'json_object' },
         }),
-      `Groq request failed (model: ${modelName})`,
-    );
+      });
 
-    const text = completion.choices[0]?.message?.content ?? '';
+      const data: any = await res.json();
+
+      if (!res.ok || data.error) {
+        const status = data.error?.code ?? res.status;
+        const err: any = new Error(`${status} ${JSON.stringify(data.error ?? data)}`);
+        err.status = status;
+        throw err;
+      }
+
+      return data;
+    }, `OpenRouter request failed (model: ${modelName})`);
+
+    const text = (completion as any).choices?.[0]?.message?.content ?? '';
     return this.parseJson(text);
   }
 
@@ -141,11 +155,14 @@ Responde ÚNICAMENTE con un objeto JSON válido con exactamente estos campos:
     throw new Error(`${errorPrefix}: ${this.describeError(lastErr)}`);
   }
 
+  /** Only retries transient server-side errors. 429 is excluded on purpose: quota/rate-limit
+   * resets take much longer than our backoff window, so retrying wastes attempts — better to
+   * fail over to the next provider immediately. */
   private isRetryable(err: unknown): boolean {
     const status = (err as Record<string, any>)?.status;
-    if (typeof status === 'number') return [429, 500, 502, 503, 504].includes(status);
+    if (typeof status === 'number') return [500, 502, 503, 504].includes(status);
     const message = this.describeError(err);
-    return /\b(429|500|502|503|504)\b/.test(message);
+    return /\b(500|502|503|504)\b/.test(message);
   }
 
   private describeError(err: unknown): string {
