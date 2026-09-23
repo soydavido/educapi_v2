@@ -30,12 +30,14 @@ export class AiService {
       cardData = await this.callGemini(prompt);
       this.logger.log('Card generated via Gemini');
     } catch (geminiError) {
-      this.logger.warn(`Gemini failed, trying Groq: ${geminiError}`);
+      this.logger.warn(`Gemini failed, trying Groq: ${this.describeError(geminiError)}`);
       try {
         cardData = await this.callGroq(prompt);
         this.logger.log('Card generated via Groq (fallback)');
       } catch (groqError) {
-        this.logger.error(`Both AI providers failed. Groq: ${groqError}`);
+        this.logger.error(
+          `Both AI providers failed. Gemini: ${this.describeError(geminiError)} | Groq: ${this.describeError(groqError)}`,
+        );
         throw new ServiceUnavailableException('No se pudo generar la carta. Intenta nuevamente.');
       }
     }
@@ -80,13 +82,19 @@ Responde ÚNICAMENTE con un objeto JSON válido con exactamente estos campos:
     const apiKey = getEnv('GEMINI_API_KEY');
     if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
 
+    const modelName = getEnv('GEMINI_MODEL', 'gemini-flash-latest');
+
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
+      model: modelName,
       generationConfig: { responseMimeType: 'application/json' },
     });
 
-    const result = await model.generateContent(prompt);
+    const result = await this.withRetry(
+      () => model.generateContent(prompt),
+      `Gemini request failed (model: ${modelName})`,
+    );
+
     const text = result.response.text();
     return this.parseJson(text);
   }
@@ -95,15 +103,58 @@ Responde ÚNICAMENTE con un objeto JSON válido con exactamente estos campos:
     const apiKey = getEnv('GROQ_API_KEY');
     if (!apiKey) throw new Error('GROQ_API_KEY not configured');
 
+    const modelName = getEnv('GROQ_MODEL', 'llama-3.1-8b-instant');
+
     const groq = new Groq({ apiKey });
-    const completion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'llama-3.1-8b-instant',
-      response_format: { type: 'json_object' },
-    });
+    const completion = await this.withRetry(
+      () =>
+        groq.chat.completions.create({
+          messages: [{ role: 'user', content: prompt }],
+          model: modelName,
+          response_format: { type: 'json_object' },
+        }),
+      `Groq request failed (model: ${modelName})`,
+    );
 
     const text = completion.choices[0]?.message?.content ?? '';
     return this.parseJson(text);
+  }
+
+  /** Retries transient failures (rate limit / server overload) with exponential backoff. */
+  private async withRetry<T>(
+    fn: () => Promise<T>,
+    errorPrefix: string,
+    maxAttempts = 3,
+  ): Promise<T> {
+    let lastErr: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await fn();
+      } catch (err) {
+        lastErr = err;
+        if (!this.isRetryable(err) || attempt === maxAttempts) break;
+        const delayMs = 1000;
+        this.logger.warn(`${errorPrefix}: ${this.describeError(err)} (retrying in ${delayMs}ms, attempt ${attempt}/${maxAttempts})`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+    throw new Error(`${errorPrefix}: ${this.describeError(lastErr)}`);
+  }
+
+  private isRetryable(err: unknown): boolean {
+    const status = (err as Record<string, any>)?.status;
+    if (typeof status === 'number') return [429, 500, 502, 503, 504].includes(status);
+    const message = this.describeError(err);
+    return /\b(429|500|502|503|504)\b/.test(message);
+  }
+
+  private describeError(err: unknown): string {
+    if (err instanceof Error) return err.message;
+    if (typeof err === 'object' && err !== null) {
+      const anyErr = err as Record<string, any>;
+      return anyErr.message ?? anyErr.error?.message ?? JSON.stringify(anyErr);
+    }
+    return String(err);
   }
 
   private parseJson(text: string): AiCardResponse {
