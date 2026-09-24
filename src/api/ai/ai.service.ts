@@ -65,7 +65,7 @@ DESCRIPCIÓN DE LA CARTA A GENERAR:
 ${cardPrompt}
 
 Genera una carta siguiendo estrictamente el contexto del proyecto y la descripción dada.
-Responde ÚNICAMENTE con un objeto JSON válido con exactamente estos campos:
+Responde ÚNICAMENTE con un objeto JSON válido con exactamente estos campos y en lenguaje Español:
 {
   "name": "nombre de la carta (máximo 100 caracteres)",
   "description": "descripción del concepto educativo (máximo 500 caracteres)",
