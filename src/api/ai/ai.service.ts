@@ -72,9 +72,11 @@ Responde ÚNICAMENTE con un objeto JSON válido con exactamente estos campos y e
   "attack": número entero respetando los rangos del contexto,
   "defense": número entero respetando los rangos del contexto,
   "lifePoints": número entero respetando los rangos del contexto,
-  "attributes": { "element": "elemento asignado según el contexto" },
+  "attributes": objeto con la estructura y campos que se indiquen en el CONTEXTO DEL PROYECTO (arriba). Si el CONTEXTO DEL PROYECTO no especifica ninguna estructura para "attributes", usa por defecto { "element": "elemento asignado según el contexto" },
   "imagePrompt": "descripción visual detallada en inglés en una sola cadena de texto, incluye colores principales, estilo artístico y elementos visuales del concepto"
-}`;
+}
+
+IMPORTANTE: si el CONTEXTO DEL PROYECTO define reglas propias para el campo "attributes" (nombres de campos, tipos de datos, valores permitidos, etc.), esas reglas tienen prioridad sobre cualquier ejemplo genérico de este mensaje y DEBEN respetarse exactamente.`;
   }
 
   private async callGemini(prompt: string): Promise<AiCardResponse> {
